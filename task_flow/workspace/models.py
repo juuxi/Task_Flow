@@ -35,7 +35,7 @@ class Project(models.Model):
 class Task(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    deadline = models.TimeField()
+    deadline = models.DateTimeField()
     assignee = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
