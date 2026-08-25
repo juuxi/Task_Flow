@@ -9,13 +9,13 @@ from .permissions import IsWorkspaceMember
 
 
 class WorkspaceViewSet(viewsets.ModelViewSet):
-    queryset = Workspace.objects.all()
+    queryset = Workspace.objects.select_related('lead').prefetch_related('members')
     serializer_class = WorkspaceSerializer
     permission_classes = [IsAuthenticated]
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
-    queryset = Project.objects.all()
+    queryset = Project.objects.select_related('workspace').prefetch_related('workspace__members')
     serializer_class = ProjectSerializer
     permission_classes = [IsAuthenticated, IsWorkspaceMember]
 
@@ -24,13 +24,35 @@ class ProjectViewSet(viewsets.ModelViewSet):
         self.check_object_permissions(self.request, obj.workspace)
         return obj
 
+    def perform_create(self, serializer):
+        workspace = get_object_or_404(Workspace, pk=self.kwargs['workspace_pk'])
+        serializer.save(workspace=workspace)
+
 
 class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, IsWorkspaceMember]
+
+    def get_queryset(self):
+        return (
+            Task.objects
+            .select_related('assignee', 'project__workspace')
+            .prefetch_related('project__workspace__members')
+            .filter(
+                project__workspace_id=self.kwargs['workspace_pk'],
+                project_id=self.kwargs['project_pk']
+            )
+        )
 
     def get_object(self):
         obj = get_object_or_404(self.get_queryset(), pk=self.kwargs["pk"])
         self.check_object_permissions(self.request, obj.project.workspace)
         return obj
+
+    def perform_create(self, serializer):
+        project = get_object_or_404(
+            Project,
+            pk=self.kwargs['project_pk'],
+            workspace_id=self.kwargs['workspace_pk']
+        )
+        serializer.save(project=project)
