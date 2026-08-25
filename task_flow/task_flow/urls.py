@@ -20,4 +20,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('workspace.urls', namespace='workspace')),
+    path('debug/', include('debug_toolbar.urls')),
 ]
