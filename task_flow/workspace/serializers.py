@@ -7,6 +7,12 @@ class WorkspaceSerializer(serializers.ModelSerializer):
         model = Workspace
         fields = ["id", "name", "lead", "members"]
 
+    def create(self, validated_data):
+        obj = Workspace.objects.create(**validated_data)
+        if obj.lead not in obj.members.all():
+            obj.members.add(obj.lead)
+        return obj
+
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
