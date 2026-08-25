@@ -8,9 +8,18 @@ class WorkspaceSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "lead", "members"]
 
     def create(self, validated_data):
+        members = validated_data.pop('members', [])
+        lead = validated_data.get('lead')
+
+        if lead not in members:
+            members.append(lead)
+
         obj = Workspace.objects.create(**validated_data)
-        if obj.lead not in obj.members.all():
-            obj.members.add(obj.lead)
+        Workspace.members.through.objects.bulk_create([
+            Workspace.members.through(workspace=obj, user=member)
+            for member in members
+        ])
+
         return obj
 
 
