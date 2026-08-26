@@ -27,6 +27,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ["id", "name", "description", "workspace"]
+        read_only_fields = ["workspace"]
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -40,3 +41,4 @@ class TaskSerializer(serializers.ModelSerializer):
             "assignee",
             "project",
         ]
+        read_only_fields = ["project"]
