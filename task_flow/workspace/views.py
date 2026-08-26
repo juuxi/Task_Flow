@@ -15,7 +15,7 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
-    queryset = Project.objects.select_related('workspace').prefetch_related('workspace__members')
+    queryset = Project.objects.select_related('workspace')
     serializer_class = ProjectSerializer
     permission_classes = [IsAuthenticated, IsWorkspaceMember]
 
@@ -37,7 +37,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         return (
             Task.objects
             .select_related('assignee', 'project__workspace')
-            .prefetch_related('project__workspace__members')
             .filter(
                 project__workspace_id=self.kwargs['workspace_pk'],
                 project_id=self.kwargs['project_pk']
